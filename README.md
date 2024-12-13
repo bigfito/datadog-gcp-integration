@@ -2,7 +2,7 @@
 
 This repository contains a series of bash shell scripts meant to facilitate the setup process of the Datadog integration with Google Cloud Platform in order to start receiving metrics and logs from the available GCP services.  The scripts were developed following the directions from the official Datadog documentation for the Datadog-GCP integration that can be found at https://docs.datadoghq.com/integrations/google_cloud_platform/?tab=dataflowmethodrecommended#log-collection.  The shell scripts make call to commands from the Google Cloud SDK, especially "gcloud" commands in order to enable and create the required resources.
 
-# Prerequsites
+# Prerequisites (read carefully)
 
 1) You must execute the scripts either from a Cloud Shell windows from your GCP environment or a local terminal session in your own laptop/desktop (assuming you have previously installed the Google Cloud SDK locally and you have authenticated with 'gcloud auth login').  The preferred method is to do it in a Cloud Shell windows in your GCP environment.
 2) The user account you use to execute the scripts must have ADMIN priviliges in your GCP organization.  Otherwise, it will add complexity to the scripts to consider all the different IAM roles scenarios.
@@ -25,4 +25,4 @@ By default the Datadog-GCP integration DOES NOT configure your GCP environment t
 
 a) dd-gcp-integration-setup-3.sh: Executint this script assumes you have already execute the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Cloud Logging service and routing all logs to a Cloud Pub/Sub subscription that will be read by a Dataflow job and then all logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values to in the PARAMETERS section at the top of the script.
 
-If you feel my scripts were helpful to you, I will appreciate you STAR my repository, save it in your bookmarks and also tell your friends and colleagues about it.  Spread the word!.
+If you feel my scripts were helpful to you, I will appreciate you STAR my repository, PINT it to your profile, save it in your browser's bookmarks and also tell your friends and colleagues about it.  Spread the word!.  I am open to suggestions as well, so in case you come up with a good idea to improve my scripts, feel free to drop me a message.  Enjoy my repo!.
