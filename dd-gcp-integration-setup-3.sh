@@ -6,16 +6,16 @@
 # This script MUST BE executed in a Cloud Shell window in the GCP project where the Datadog Integration exists
 
 # GLOBAL GCP PARAMETERS
-GCP_PROJECT_ID="prj-dd-integration-01"
+GCP_PROJECT_ID="YOUR_GCP_PROJECT_ID_HERE"
 GCP_REGION="us-central1"
 GCP_TEMP_BUCKET="dataflow-gcp-to-dd-$GCP_PROJECT_ID"
 
 # NETWORKING PARAMETERS
-VPC_NETWORK="vpc-dd-network"
-VPC_SUBNETWORK="subnet-dd-main"
+VPC_NETWORK="YOUR_VPC_NETWORK_NAME_HERE"
+VPC_SUBNETWORK="YOUR_VPC_SUBNETWORK_NAME_HERE"
 
 # CLOUD LOGGING PARAMETERS
-LOG_SINK_NAME="sink-export-apigee-logs"
+LOG_SINK_NAME="sink-export-dd-logs"
 
 # PUBSUB PARAMETERS
 PUB_SUB_TOPIC_ACCEPTED="dd-accepted-logs"
@@ -27,7 +27,7 @@ DATAFLOW_JOB_NAME="dataflow-gcp-logs-to-datadog-1"
 
 # DATADOG PARAMETERS
 DATADOG_SECRET_NAME="secret-datadog-api-key"
-DATADOG_API_KEY="a7a5f1a39cca50b45fb225bd700152a7"
+DATADOG_API_KEY="YOUR_DATADOG_API_KEY_HERE"
 
 printf "\n"
 echo "This script will assist you with the required configuration to send GCP logs to Datadog using a Dataflow job."
