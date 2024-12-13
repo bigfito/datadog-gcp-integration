@@ -1,12 +1,15 @@
 # Datadog-GCP Integration
 
-This repository contains a series of bash shell scripts meant to facilitate the setup process of the Datadog integration with Google Cloud Platform in order to start receiving metrics and logs from the available GCP services.  The scripts were developed following the directions from the official Datadog documentation for the Datadog-GCP integration that can be found at https://docs.datadoghq.com/integrations/google_cloud_platform/?tab=dataflowmethodrecommended#log-collection.  The shell scripts make call to commands from the Google Cloud SDK, especially "gcloud" commands in order to enable and create the required resources.
+This repository contains a series of bash shell scripts meant to facilitate the setup process of the Datadog integration with Google Cloud Platform in order to start receiving metrics and logs from the available GCP services.  The scripts were developed following the directions from the official Datadog documentation for the Datadog-GCP integration that can be found at https://docs.datadoghq.com/integrations/google_cloud_platform/?tab=dataflowmethodrecommended#log-collection.
+
+The shell scripts make calls to different commands from the Google Cloud SDK, especially "gcloud" commands in order to enable and create the required resources. For more information regarding the Google Cloud SKD you can visit the following link: https://cloud.google.com/sdk/docs/install.
 
 # Prerequisites (read carefully)
 
 1) You must execute the scripts either from a Cloud Shell windows from your GCP environment or a local terminal session in your own laptop/desktop (assuming you have previously installed the Google Cloud SDK locally and you have authenticated with 'gcloud auth login').  The preferred method is to do it in a Cloud Shell windows in your GCP environment.
 2) The user account you use to execute the scripts must have ADMIN priviliges in your GCP organization.  Otherwise, it will add complexity to the scripts to consider all the different IAM roles scenarios.
 3) Do not forget to add execution permissions over the scripts so you can execute them in your shell environment.
+4) DO NOT TEST IN PRODUCTION.  Try the scripts in a SAFE environment first such as DEV or a personal GCP account.
 
 # Part I.  Enabling the Datadog-GCP Integration
 
