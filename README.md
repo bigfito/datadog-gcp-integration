@@ -15,8 +15,8 @@ The shell scripts make calls to different commands from the Google Cloud SDK, es
 
 For enbaling the Datadog-GCP integration you must execute the following scripts:
 
-a) dd-gcp-integration-setup-1.sh: This script will enable all GCP APIs that are required for the Datadog-GCP integration to work on each one of your GCP projects.
-b) dd-gcp-integration-setup-2.sh: This script will walk you through the setup process of the Datadog-GCP integration by creating a series of resources than will be needed.  (This script requires you update the PARAMETERS section at the top of the script with the proper values you are willing to use for your configurations).
+1) dd-gcp-integration-setup-1.sh: This script will enable all GCP APIs that are required for the Datadog-GCP integration to work on each one of your GCP projects.
+2) dd-gcp-integration-setup-2.sh: This script will walk you through the setup process of the Datadog-GCP integration by creating a series of resources than will be needed.  (This script requires you update the PARAMETERS section at the top of the script with the proper values you are willing to use for your configurations).
 
 The central idea is creating a new dedicated GCP project (03-OBSERVABILITY/PRJ-DD-INTEGRATION-01) to host all related resources that will be needed for the Datadog-GCP integration to work properly.  A recommended hierarchy of resources in GCP is shown below:
 
@@ -26,7 +26,7 @@ The central idea is creating a new dedicated GCP project (03-OBSERVABILITY/PRJ-D
 
 By default the Datadog-GCP integration DOES NOT configure your GCP environment to forward LOGS to Datadog.  This is something you will have to do on your own.  But no worries, you can still get assistance by executing our last bash shell script.  For enbaling the Datadog-GCP log forwarding to the Datadog intake service you must execute the following script:
 
-a) dd-gcp-integration-setup-3.sh: Executing this script assumes you have already executed the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Cloud Logging service and routing all logs to a Cloud Pub/Sub subscription that will be read by a Dataflow job and then all logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values to in the PARAMETERS section at the top of the script.
+1) dd-gcp-integration-setup-3.sh: Executing this script assumes you have already executed the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Cloud Logging service and routing all logs to a Cloud Pub/Sub subscription that will be read by a Dataflow job and then all logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values to in the PARAMETERS section at the top of the script.
 
 ![image](https://github.com/user-attachments/assets/9c8e849d-8e05-4bbf-8a0f-41493359f6bd)
 
