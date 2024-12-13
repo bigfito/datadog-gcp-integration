@@ -25,4 +25,7 @@ By default the Datadog-GCP integration DOES NOT configure your GCP environment t
 
 a) dd-gcp-integration-setup-3.sh: Executint this script assumes you have already execute the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Cloud Logging service and routing all logs to a Cloud Pub/Sub subscription that will be read by a Dataflow job and then all logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values to in the PARAMETERS section at the top of the script.
 
+![image](https://github.com/user-attachments/assets/9c8e849d-8e05-4bbf-8a0f-41493359f6bd)
+
+
 If you feel my scripts were helpful to you, I will appreciate you STAR my repository, PINT it to your profile, save it in your browser's bookmarks and also tell your friends and colleagues about it.  Spread the word!.  I am open to suggestions as well, so in case you come up with a good idea to improve my scripts, feel free to drop me a message.  Enjoy my repo!.
