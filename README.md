@@ -18,3 +18,11 @@ b) dd-gcp-integration-setup-2.sh: This script will walk you through the setup pr
 The central idea is creating a new dedicated GCP project to host all related resources that will be needed for the Datadog-GCP integration to work properly.  A recommended hierarchy of resources is shown below:
 
 ![bigfito-cloud-resources](https://github.com/user-attachments/assets/36e8df9e-e44e-4ab9-ba6c-2e08a0ed051b)
+
+# Part II.  Enabling the LOG collection for the Datadog-GCP Integration
+
+By default the Datadog-GCP integration DOES NOT configure your GCP environment to forward LOGS to Datadog.  This is something you will have to do on your own.  But no worries, you can still get assistance by executing our last bash shell script.  For enbaling the Datadog-GCP log forwarding to Datadog you must execute the following scripts
+
+a) dd-gcp-integration-setup-3.sh: Executint this script assumes you have already execute the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Cloud Logging service and routing all logs to a Cloud Pub/Sub subscription that will be read by a Dataflow job and then all logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values to in the PARAMETERS section at the top of the script.
+
+If you feel my scripts were helpful to you, I will appreciate you STAR my repository, save it in your bookmarks and also tell your friends and colleagues about it.  Spread the word!.
