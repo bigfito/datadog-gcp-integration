@@ -18,7 +18,7 @@ For enbaling the Datadog-GCP integration you must execute the following scripts:
 a) dd-gcp-integration-setup-1.sh: This script will enable all GCP APIs that are required for the Datadog-GCP integration to work on each one of your GCP projects.
 b) dd-gcp-integration-setup-2.sh: This script will walk you through the setup process of the Datadog-GCP integration by creating a series of resources than will be needed.  (This script requires you update the PARAMETERS section at the top of the script with the proper values you are willing to use for your configurations).
 
-The central idea is creating a new dedicated GCP project to host all related resources that will be needed for the Datadog-GCP integration to work properly.  A recommended hierarchy of resources is shown below:
+The central idea is creating a new dedicated GCP project (03-OBSERVABILITY/PRJ-DD-INTEGRATION) to host all related resources that will be needed for the Datadog-GCP integration to work properly.  A recommended hierarchy of resources in GCP is shown below:
 
 ![bigfito-cloud-resources](https://github.com/user-attachments/assets/36e8df9e-e44e-4ab9-ba6c-2e08a0ed051b)
 
