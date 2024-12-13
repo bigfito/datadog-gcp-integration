@@ -6,7 +6,7 @@ This repository contains a series of bash shell scripts meant to facilitate the 
 
 1) You must execute the scripts either from a Cloud Shell windows from your GCP environment or a local terminal session in your own laptop/desktop (assuming you have previously installed the Google Cloud SDK locally and you have authenticated with 'gcloud auth login').  The preferred method is to do it in a Cloud Shell windows in your GCP environment.
 2) The user account you use to execute the scripts must have ADMIN priviliges in your GCP organization.  Otherwise, it will add complexity to the scripts to consider all the different IAM roles scenarios.
-3) 3) Do not forget to add execution permissions over the scripts so you can execute them in your shell environment.
+3) Do not forget to add execution permissions over the scripts so you can execute them in your shell environment.
 
 # Part I.  Enabling the Datadog-GCP Integration
 
