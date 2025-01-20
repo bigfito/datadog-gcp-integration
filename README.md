@@ -30,6 +30,6 @@ By default the Datadog-GCP integration DOES NOT configure your GCP environment t
 
 ![image](https://github.com/user-attachments/assets/9c8e849d-8e05-4bbf-8a0f-41493359f6bd)
 
-# BONUS.  I you are also considering to work with the Datadog's Cloud Cost Management (CCM) module.  There is an additional directory with scripts to facilitate that integration too.
+# BONUS.  If you are also considering to work with Datadog's Cloud Cost Management (CCM) module.  There is an additional directory with scripts to facilitate that integration too.
 
 If you feel my scripts were helpful to you, I will appreciate you STAR my repository, PIN it to your profile, save it in your browser's bookmarks and also tell your friends and colleagues about it.  Spread the word!.  I am open to suggestions as well, so in case you come up with a good idea to improve my scripts, feel free to drop me a message.  Enjoy my repo!.
