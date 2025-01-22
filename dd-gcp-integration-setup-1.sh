@@ -12,6 +12,7 @@ printf "\n"
 # Enable the required GCP APIs for each project
 
 while read GCP_PROJECT; do
+
     # Process the list of GCP projects
     echo "Enabling GCP APIs for project: $GCP_PROJECT"
 

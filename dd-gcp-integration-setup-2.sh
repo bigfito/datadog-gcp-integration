@@ -6,12 +6,12 @@
 # @description: This script executes all required steps to setup the integration of Datadog with GCP
 
 # GLOBAL GCP PARAMETERS
-GCP_ORG="YOUR_GCP_ORG_HERE"
-GCP_ORG_ID="YOUE_GCP_ORG_ID_HERE"
-GCP_FOLDER_ID="YOUR_PARENT_FOLDER_ID_HERE"
-GCP_PROJECT_NAME="YOUR_GCP_PROJECT_NAME_HERE"
-GCP_PROJECT_ID="YOUR_GCP_PROJECT_ID_HERE"
-GCP_BILLING_ACCOUNT_ID="YOUR_BILLING_ACCOUNT_ID_HERE"
+GCP_ORG="bigfito.cloud"
+GCP_ORG_ID="584378483656"
+GCP_FOLDER_ID="199236173099"
+GCP_PROJECT_NAME="PRJ-DD-INTEGRATION-01"
+GCP_PROJECT_ID="prj-dd-integration-01"
+GCP_BILLING_ACCOUNT_ID="01F61D-EF7B6F-CD50BA"
 
 # NETWORKING PARAMETERS
 VPC_NETWORK="vpc-dd-network"
@@ -28,9 +28,10 @@ GCP_SA_PRINCIPAL="serviceAccount:$GCP_SA_NAME@$GCP_PROJECT_ID.iam.gserviceaccoun
 GCP_SA_EMAIL="$GCP_SA_NAME@$GCP_PROJECT_ID.iam.gserviceaccount.com"
 
 # DATADOG PARAMETERS
-DD_PRINCIPAL_DD="YOUR_DATADOG_PRINCIPAL_HERE"
+DD_PRINCIPAL_DD="ddgci-6f89e2938a017fa434aa@datadog-gci-sts-us1-prod.iam.gserviceaccount.com"
 DD_PRINCIPAL="serviceAccount:$DD_PRINCIPAL_DD"
 
+clear
 echo "NOTE: This script should be run by a GCP user with GCP ADMIN role from a Cloud Shell window or a GCP SDK CLI."
 printf "\n"
 
@@ -60,6 +61,7 @@ read -r PRESS_KEY
 
 # STEP 2)
 
+clear
 printf "\n"
 echo "Step 2): Creating a VPC network in custom mode and a default subnet for the GCP project..."
 
@@ -122,10 +124,13 @@ read -r PRESS_KEY
 
 # STEP 3)
 
+clear
 printf "\n"
 echo "Step 3): Create a Service Account for the GCP project..."
 
-gcloud iam service-accounts create $GCP_SA_NAME --display-name=$GCP_SA_DISPLAY_NAME --project=$GCP_PROJECT_ID
+gcloud iam service-accounts create $GCP_SA_NAME \
+       --display-name=$GCP_SA_DISPLAY_NAME \
+       --project=$GCP_PROJECT_ID
 
 echo "Service Account $GCP_SA_EMAIL created."
 printf "\n"
@@ -134,6 +139,7 @@ read -r PRESS_KEY
 
 # STEP 4)
 
+clear
 printf "\n"
 echo "Step 4): Grant the Service Account with the proper roles in the GCP project..."
 
@@ -168,8 +174,9 @@ read -r PRESS_KEY
 
 # Step 5)
 
+clear
 printf "\n"
-echo "Step 5): Grant the Service Account the proper roles at the organization level..."
+echo "Step 5): Grant the Service Account the proper roles at the GCP ORGANIZATION level..."
 
 echo "Grating Compute Viewer role..."
 gcloud organizations add-iam-policy-binding $GCP_ORG_ID \
@@ -193,22 +200,24 @@ read -r PRESS_KEY
 
 # Step 6)
 
+clear
 printf "\n"
-echo "Step 6): Adding the Datadog Principal to impersonate the Service Account (SA)..."
+echo "Step 6): Adding the DATADOG PRINCIPAL to impersonate the Service Account (SA)..."
 
 gcloud iam service-accounts add-iam-policy-binding $GCP_SA_EMAIL \
         --member=$DD_PRINCIPAL \
         --role='roles/iam.serviceAccountTokenCreator'
 
-echo "Datadog Principal can now impersonate the Service Account (SA)."
+echo "DATADOG PRINCIPAL can now impersonate the Service Account (SA)."
 printf "\n"
 echo "Press ENTER to continue..."
 read -r PRESS_KEY
 
 # Step 7)
 
+clear
 printf "\n"
-echo "Step 7): Copy the Service Account email and paste it into your Datadog Integration configuration..."
+echo "Step 7): Copy the GCP SA email and paste it into your DATADOG integration (Add New GCP Account) config..."
 echo "GCP Service Account: $GCP_SA_EMAIL"
 printf "\n"
 echo "Press ENTER to continue..."

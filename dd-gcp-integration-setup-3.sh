@@ -6,16 +6,16 @@
 # This script MUST BE executed in a Cloud Shell window in the GCP project where the Datadog Integration exists
 
 # GLOBAL GCP PARAMETERS
-GCP_PROJECT_ID="YOUR_GCP_PROJECT_ID_HERE"
+GCP_PROJECT_ID="prj-dd-integration-01"
 GCP_REGION="us-central1"
 GCP_TEMP_BUCKET="dataflow-gcp-to-dd-$GCP_PROJECT_ID"
 
 # NETWORKING PARAMETERS
-VPC_NETWORK="YOUR_VPC_NETWORK_NAME_HERE"
-VPC_SUBNETWORK="YOUR_VPC_SUBNETWORK_NAME_HERE"
+VPC_NETWORK="vpc-dd-network"
+VPC_SUBNETWORK="subnet-dd-main"
 
 # CLOUD LOGGING PARAMETERS
-LOG_SINK_NAME="sink-export-dd-logs"
+LOG_SINK_NAME="sink-export-apigee-logs"
 
 # PUBSUB PARAMETERS
 PUB_SUB_TOPIC_ACCEPTED="dd-accepted-logs"
@@ -23,12 +23,14 @@ PUB_SUB_TOPIC_REJECTED="dd-rejected-logs"
 
 # DATAFLOW PARAMETERS
 DATAFLOW_DATADOG_SERVICE_ACCOUNT="dd-dataflow-sa"
+DF_SA_MEMBER_VALUE="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com"
 DATAFLOW_JOB_NAME="dataflow-gcp-logs-to-datadog-1"
 
 # DATADOG PARAMETERS
 DATADOG_SECRET_NAME="secret-datadog-api-key"
-DATADOG_API_KEY="YOUR_DATADOG_API_KEY_HERE"
+DATADOG_API_KEY="a7a5f1a39cca50b45fb225bd700152a7"
 
+clear
 printf "\n"
 echo "This script will assist you with the required configuration to send GCP logs to Datadog using a Dataflow job."
 printf "\n"
@@ -45,12 +47,13 @@ read -r PRESS_KEY
 
 # Step 1). Create the service account to be used by the Dataflow job
 
+clear
 printf "\n"
 echo "Creating a Service Account for the Dataflow job..."
 gcloud iam service-accounts create $DATAFLOW_DATADOG_SERVICE_ACCOUNT \
-    --display-name=$DATAFLOW_DATADOG_SERVICE_ACCOUNT \
-    --project=$GCP_PROJECT_ID \
-    --description="Service Account required for Dataflow to export logs to Datadog"
+       --display-name=$DATAFLOW_DATADOG_SERVICE_ACCOUNT \
+       --project=$GCP_PROJECT_ID \
+       --description="Service Account required for Dataflow to export logs to Datadog"
 
 echo "The Service Account that will be used by the Dataflow job has been created."
 printf "\n"
@@ -59,47 +62,48 @@ read -r PRESS_KEY
 
 # Step 2). Grant the following roles to the service account in the Datadog integration GCP project
 
+clear
 printf "\n"
 echo "Adding proper roles to the service account..."
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/dataflow.admin"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/dataflow.admin"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/dataflow.serviceAgent"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/dataflow.serviceAgent"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/dataflow.worker"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/dataflow.worker"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/compute.networkUser"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/compute.networkUser"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/storage.objectViewer"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/storage.objectViewer"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/pubsub.viewer"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/pubsub.viewer"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/pubsub.subscriber"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/pubsub.subscriber"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/pubsub.publisher"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/pubsub.publisher"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/secretmanager.secretAccessor"
 
 gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-    --member="serviceAccount:$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/storage.objectAdmin"
+       --member="$DF_SA_MEMBER_VALUE" \
+       --role="roles/storage.objectAdmin"
 
 echo "All required roles granted to the Service Account in the Datadog integration GCP project."
 printf "\n"
@@ -108,6 +112,7 @@ read -r PRESS_KEY
 
 # Step 3) Enabling all required APIs in the Datadog integration GCP project
 
+clear
 printf "\n"
 echo "Enabling all required APIs in the Datadog integration GCP project..."
 
@@ -134,6 +139,7 @@ read -r PRESS_KEY
 
 # Step 4) Create a SECRET for your Datadog API KEY
 
+clear
 printf "\n"
 echo "Creating a secret for your DATADOG API KEY..."
 echo $DATADOG_API_KEY | gcloud secrets create $DATADOG_SECRET_NAME \
@@ -148,6 +154,7 @@ read -r PRESS_KEY
 
 # Step 5) Create a storage bucket so Dataflow can write temporary files
 
+clear
 printf "\n"
 echo "Creating a storage bucket for temporary files used by the Dataflow job..."
 gcloud storage buckets create gs://$GCP_TEMP_BUCKET \
@@ -163,6 +170,8 @@ read -r PRESS_KEY
 
 # Step 6) Create the PubSub topics and their subscriptions
 
+
+clear
 printf "\n"
 echo "Creating required Cloud Pub/Sub topics..."
 gcloud pubsub topics create $PUB_SUB_TOPIC_ACCEPTED
@@ -178,6 +187,7 @@ read -r PRESS_KEY
 
 # Step 7) Create a log sink to route desired logs
 
+clear
 printf "\n"
 echo "Creating Cloud Logging sink to export logs..."
 gcloud logging sinks create $LOG_SINK_NAME "pubsub.googleapis.com/projects/$GCP_PROJECT_ID/topics/$PUB_SUB_TOPIC_ACCEPTED" \
@@ -191,6 +201,7 @@ read -r PRESS_KEY
 
 # Step 8) Run a Dataflow job to start sending logs to Datadog
 
+clear
 gcloud dataflow jobs run $DATAFLOW_JOB_NAME \
      --gcs-location gs://dataflow-templates-us-central1/latest/Cloud_PubSub_to_Datadog \
      --region $GCP_REGION \
