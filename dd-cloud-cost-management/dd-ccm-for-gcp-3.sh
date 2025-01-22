@@ -11,6 +11,7 @@ GCP_CCM_PROJECT_ID="dd-integration-439619"
 GCP_DD_SA="sa-datadog@dd-integration-439619.iam.gserviceaccount.com"
 MEMBER_VALUE="serviceAccount:$GCP_DD_SA"
 
+clear
 echo "Granting Bigquery Admin to the service account..."
 gcloud projects add-iam-policy-binding $GCP_CCM_PROJECT_ID \
        --member=$MEMBER_VALUE \

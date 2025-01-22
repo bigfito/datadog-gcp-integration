@@ -8,6 +8,7 @@
 # NOTE: It is recommended you choose the same GCP project where the Datadog's GCP integration is hosted
 GCP_CCM_PROJECT_ID="dd-integration-439619"
 
+clear
 echo "Enabling BigQuery API..."
 gcloud services enable bigquery.googleapis.com --project=$GCP_CCM_PROJECT_ID
 
