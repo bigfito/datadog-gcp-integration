@@ -20,7 +20,8 @@ For enbaling the Datadog-GCP integration you must execute the following scripts:
 
 The main idea is creating a new dedicated GCP project (03-OBSERVABILITY/PRJ-DD-INTEGRATION-01) to host all related resources that will be needed for the Datadog-GCP integration to work properly.  If you have a resource architecture based in "Shared VPC", it is not necessary to create your observability project based on that, again, the main purpose is to reduce complexity.  At the end, the resources created in the GCP datadog integration project will be monitoring the whole structure of projects in your organization.  A recommended hierarchy of resources in GCP is shown below:
 
-![bigfito-cloud-resources](https://github.com/user-attachments/assets/36e8df9e-e44e-4ab9-ba6c-2e08a0ed051b)
+![resource-manager-observability](https://github.com/user-attachments/assets/e83b1b68-0f9e-4b6e-b8f7-7c317cc38e14)
+
 
 # Part II.  Enabling the LOG collection for the Datadog-GCP Integration
 
@@ -28,7 +29,8 @@ By default the Datadog-GCP integration DOES NOT configure your GCP environment t
 
 1) dd-gcp-integration-setup-3.sh: Executing this script assumes you have already executed the 2 previous ones from the PART I of this series.  This script will create a ROUTER LOG SINK in your Google Cloud Logging service and route all logs (you should consider applying a log filter to reduce the amount of logs) to a Google Cloud Pub/Sub subscription that will be read by a Dataflow data job and then all of the logs will be forwarded to the intake Datadog service.  Take some time to customize this script by updating the proper values in the PARAMETERS section at the top of the script.
 
-![image](https://github.com/user-attachments/assets/9c8e849d-8e05-4bbf-8a0f-41493359f6bd)
+![dd-gcp-log-collection](https://github.com/user-attachments/assets/99b3ffb5-aa24-4c8b-baf3-7d6e280af6e6)
+
 
 # BONUS.  If you are also considering to work with Datadog's Cloud Cost Management (CCM) module.  There is an additional directory with scripts to facilitate that integration too.
 
