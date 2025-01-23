@@ -28,7 +28,7 @@ DATAFLOW_JOB_NAME="dataflow-gcp-logs-to-datadog-1"
 
 # DATADOG PARAMETERS
 DATADOG_SECRET_NAME="secret-datadog-api-key"
-DATADOG_API_KEY="a7a5f1a39cca50b45fb225bd700152a7"
+DATADOG_API_KEY={$DATADOG_API_KEY}
 
 clear
 printf "\n"
