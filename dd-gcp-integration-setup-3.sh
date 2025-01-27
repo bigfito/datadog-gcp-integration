@@ -1,227 +1,131 @@
 #!/bin/bash
 
-# @author: Adolfo Orozco - adolfo.orozco@datadoghq.com
+# @author: Adolfo Orozco
 # @version: 1.0
-# @description: This script helps you with the required configuration to send GCP logs to Datadog
-# This script MUST BE executed in a Cloud Shell window in the GCP project where the Datadog Integration exists
+# @description: Automates configuration for sending GCP logs to Datadog
+# NOTE: Run this script in a Cloud Shell window within the Datadog integration GCP project
 
-# GLOBAL GCP PARAMETERS
+# Global Parameters
 GCP_PROJECT_ID="prj-gcp-dd-integration"
 GCP_REGION="northamerica-south1"
 GCP_TEMP_BUCKET="dataflow-gcp-to-dd-$GCP_PROJECT_ID"
 
-# NETWORKING PARAMETERS
+# Networking Parameters
 VPC_NETWORK="vpc-dd-network"
 VPC_SUBNETWORK="subnet-dd-default"
 
-# CLOUD LOGGING PARAMETERS
+# Cloud Logging Parameters
 LOG_SINK_NAME="sink-export-dd-info-logs"
 LOG_FILTER_VALUE="severity>INFO"
 
-# PUBSUB PARAMETERS
+# Pub/Sub Parameters
 PUB_SUB_TOPIC_ACCEPTED="dd-accepted-logs"
 PUB_SUB_TOPIC_REJECTED="dd-rejected-logs"
 
-# DATAFLOW PARAMETERS
+# Dataflow Parameters
 DATAFLOW_DATADOG_SERVICE_ACCOUNT="dd-dataflow-sa"
 DATAFLOW_SA_FQDN="$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com"
-DF_SA_MEMBER_VALUE="serviceAccount:$DATAFLOW_SA_FQDN"
-DATAFLOW_JOB_NAME="dataflow-gcp-logs-to-datadog-1"
-
-# DATADOG PARAMETERS - NOTE: REPLACE $DD_API_KEY with a proper value
 DATADOG_SECRET_NAME="secret-datadog-api-key"
 DATADOG_API_KEY=$DD_API_KEY
 
 clear
-printf "\n"
-echo "This script will assist you with the required configuration to send GCP logs to Datadog using a Dataflow job."
-printf "\n"
+echo "Starting Datadog integration setup for GCP logs."
 
-# SETTING THE PROJECT
+# Function Definitions
 
-echo "Setting the PROJECT_ID..."
-gcloud config set project $GCP_PROJECT_ID
+set_project() {
+  echo "Setting project to $GCP_PROJECT_ID..."
+  gcloud config set project "$GCP_PROJECT_ID"
+}
 
-echo "The current project has been set to $GCP_PROJECT_ID."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
+create_service_account() {
+  echo "Creating Dataflow Service Account..."
+  gcloud iam service-accounts create "$DATAFLOW_DATADOG_SERVICE_ACCOUNT" \
+    --display-name="$DATAFLOW_DATADOG_SERVICE_ACCOUNT" \
+    --description="Service Account for Dataflow job exporting logs to Datadog" \
+    --project="$GCP_PROJECT_ID"
+}
 
-# Step 1). Create the service account to be used by the Dataflow job
+assign_roles() {
+  echo "Assigning roles to Service Account..."
+  roles=("roles/dataflow.admin" "roles/dataflow.serviceAgent" "roles/dataflow.worker" \
+         "roles/compute.networkUser" "roles/storage.objectViewer" "roles/pubsub.viewer" \
+         "roles/pubsub.subscriber" "roles/pubsub.publisher" "roles/secretmanager.secretAccessor" \
+         "roles/storage.objectAdmin")
+  for role in "${roles[@]}"; do
+    gcloud projects add-iam-policy-binding "$GCP_PROJECT_ID" \
+      --member="serviceAccount:$DATAFLOW_SA_FQDN" --role="$role"
+  done
+}
 
-clear
-printf "\n"
-echo "Step 1). Creating a Service Account for the Dataflow job..."
-gcloud iam service-accounts create $DATAFLOW_DATADOG_SERVICE_ACCOUNT \
-       --display-name=$DATAFLOW_DATADOG_SERVICE_ACCOUNT \
-       --project=$GCP_PROJECT_ID \
-       --description="Service Account required for Dataflow to export logs to Datadog"
+enable_apis() {
+  echo "Enabling required APIs..."
+  apis=("dataflow.googleapis.com" "pubsub.googleapis.com" "logging.googleapis.com" \
+        "monitoring.googleapis.com" "secretmanager.googleapis.com")
+  for api in "${apis[@]}"; do
+    gcloud services enable "$api" --project="$GCP_PROJECT_ID"
+  done
+}
 
-echo "The SA ($DATAFLOW_SA_FQDN) that will be used by the Dataflow job has been created."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
+create_secret() {
+  echo "Storing Datadog API Key in Secret Manager..."
+  echo "$DATADOG_API_KEY" | gcloud secrets create "$DATADOG_SECRET_NAME" \
+    --data-file=- --replication-policy=user-managed --locations="$GCP_REGION"
+}
 
-# Step 2). Grant the following roles to the service account in the Datadog integration GCP project
+create_temp_bucket() {
+  echo "Creating temporary storage bucket for Dataflow job..."
+  gcloud storage buckets create "gs://$GCP_TEMP_BUCKET" \
+    --location="$GCP_REGION" --default-storage-class=STANDARD \
+    --uniform-bucket-level-access --public-access-prevention
+}
 
-clear
-printf "\n"
-echo "Step 2). Adding proper roles to the service account..."
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/dataflow.admin"
+create_pubsub_topics() {
+  echo "Creating Pub/Sub topics and subscriptions..."
+  gcloud pubsub topics create "$PUB_SUB_TOPIC_ACCEPTED"
+  gcloud pubsub subscriptions create "subscription-$PUB_SUB_TOPIC_ACCEPTED" --topic="$PUB_SUB_TOPIC_ACCEPTED"
+  gcloud pubsub topics create "$PUB_SUB_TOPIC_REJECTED"
+  gcloud pubsub subscriptions create "subscription-$PUB_SUB_TOPIC_REJECTED" --topic="$PUB_SUB_TOPIC_REJECTED"
+}
 
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/dataflow.serviceAgent"
+create_log_sink() {
+  echo "Creating log sink to route logs..."
+  gcloud logging sinks create "$LOG_SINK_NAME" \
+    "pubsub.googleapis.com/projects/$GCP_PROJECT_ID/topics/$PUB_SUB_TOPIC_ACCEPTED" \
+    --log-filter="$LOG_FILTER_VALUE" --project="$GCP_PROJECT_ID"
+}
 
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/dataflow.worker"
+run_dataflow_job() {
+  echo "Starting Dataflow job to send logs to Datadog..."
+  gcloud dataflow jobs run "dataflow-gcp-logs-to-datadog" \
+    --gcs-location "gs://dataflow-templates-us-central1/latest/Cloud_PubSub_to_Datadog" \
+    --region "$GCP_REGION" --network "$VPC_NETWORK" \
+    --subnetwork "regions/$GCP_REGION/subnetworks/$VPC_SUBNETWORK" \
+    --disable-public-ips \
+    --service-account-email "$DATAFLOW_SA_FQDN" \
+    --staging-location "gs://$GCP_TEMP_BUCKET/temp" \
+    --additional-experiments streaming_mode_exactly_once \
+    --parameters inputSubscription="projects/$GCP_PROJECT_ID/subscriptions/subscription-$PUB_SUB_TOPIC_ACCEPTED" \
+    url="https://http-intake.logs.datadoghq.com" \
+    includePubsubMessage=true \
+    apiKeySecretId="projects/$GCP_PROJECT_ID/secrets/$DATADOG_SECRET_NAME/versions/1" \
+    apiKeySource=SECRET_MANAGER \
+    javascriptTextTransformReloadIntervalMinutes=0 \
+    outputDeadletterTopic="projects/$GCP_PROJECT_ID/topics/$PUB_SUB_TOPIC_REJECTED"
+}
 
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/compute.networkUser"
+# Main Script Execution
 
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/storage.objectViewer"
+set_project
+create_service_account
+assign_roles
+enable_apis
+create_secret
+create_temp_bucket
+create_pubsub_topics
+create_log_sink
+run_dataflow_job
 
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/pubsub.viewer"
-
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/pubsub.subscriber"
-
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/pubsub.publisher"
-
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/secretmanager.secretAccessor"
-
-gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-       --member="$DF_SA_MEMBER_VALUE" \
-       --role="roles/storage.objectAdmin"
-
-echo "All required roles granted to the SA ($DATAFLOW_SA_FQDN) in the Datadog integration GCP project."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 3) Enabling all required APIs in the Datadog integration GCP project
-
-clear
-printf "\n"
-echo "Step 3). Enabling all required APIs in the Datadog integration GCP project..."
-
-printf "\n"
-echo "Enabling Dataflow API..."
-gcloud services enable dataflow.googleapis.com --project=$GCP_PROJECT_ID
-
-echo "Enabling Pub/Sub API..."
-gcloud services enable pubsub.googleapis.com --project=$GCP_PROJECT_ID
-
-echo "Enabling Cloud Logging API..."
-gcloud services enable logging.googleapis.com --project=$GCP_PROJECT_ID
-
-echo "Enabling Cloud Monitoring API..."
-gcloud services enable monitoring.googleapis.com --project=$GCP_PROJECT_ID
-
-echo "Enabling Secret Manager API..."
-gcloud services enable secretmanager.googleapis.com --project=$GCP_PROJECT_ID
-
-echo "All required APIs have been enabled in the Datadog integration GCP project."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 4) Create a SECRET for your Datadog API KEY
-
-clear
-printf "\n"
-echo "Step 4). Creating a secret for your DATADOG API KEY..."
-echo $DATADOG_API_KEY | gcloud secrets create $DATADOG_SECRET_NAME \
-     --data-file=- \
-     --replication-policy=user-managed \
-     --locations=$GCP_REGION
-
-echo "DATADOG API KEY has been stored as a SECRET in GCP SECRET MANAGER."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 5) Create a storage bucket so Dataflow can write temporary files
-
-clear
-printf "\n"
-echo "Step 5). Creating a storage bucket for temporary files used by the Dataflow job..."
-gcloud storage buckets create gs://$GCP_TEMP_BUCKET \
-       --location=$GCP_REGION \
-       --default-storage-class=STANDARD \
-       --uniform-bucket-level-access \
-       --public-access-prevention
-
-echo "Storage Bucket created."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 6) Create the PubSub topics and their subscriptions
-
-clear
-printf "\n"
-echo "Step 6). Creating required Cloud Pub/Sub topics..."
-gcloud pubsub topics create $PUB_SUB_TOPIC_ACCEPTED
-gcloud pubsub subscriptions create "subscription-"$PUB_SUB_TOPIC_ACCEPTED --topic=$PUB_SUB_TOPIC_ACCEPTED
-
-gcloud pubsub topics create $PUB_SUB_TOPIC_REJECTED
-gcloud pubsub subscriptions create "subscription-"$PUB_SUB_TOPIC_REJECTED --topic=$PUB_SUB_TOPIC_REJECTED
-
-echo "PubSub topics and subscriptions created."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 7) Create a log sink to route desired logs
-
-clear
-printf "\n"
-echo "Step 7). Creating Cloud Logging sink to export logs..."
-gcloud logging sinks create $LOG_SINK_NAME "pubsub.googleapis.com/projects/$GCP_PROJECT_ID/topics/$PUB_SUB_TOPIC_ACCEPTED" \
-       --log-filter="$LOG_FILTER_VALUE" \
-       --project=$GCP_PROJECT_ID
-
-echo "Cloud Logging router sink created."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-# Step 8) Run a Dataflow job to start sending logs to Datadog
-
-clear
-printf "\n"
-echo "Step 8). Running the DATAFLOW job to start sending logs to the DATADOG intake service..."
-gcloud dataflow jobs run $DATAFLOW_JOB_NAME \
-     --gcs-location gs://dataflow-templates-us-central1/latest/Cloud_PubSub_to_Datadog \
-     --region $GCP_REGION \
-     --network $VPC_NETWORK \
-     --subnetwork regions/$GCP_REGION/subnetworks/$VPC_SUBNETWORK \
-     --disable-public-ips \
-     --service-account-email $DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com \
-     --staging-location gs://$GCP_TEMP_BUCKET/temp \
-     --additional-experiments streaming_mode_exactly_once \
-     --parameters inputSubscription=projects/$GCP_PROJECT_ID/subscriptions/subscription-$PUB_SUB_TOPIC_ACCEPTED,url=https://http-intake.logs.datadoghq.com,includePubsubMessage=true,apiKeySecretId=projects/$GCP_PROJECT_ID/secrets/$DATADOG_SECRET_NAME/versions/1,apiKeySource=SECRET_MANAGER,javascriptTextTransformReloadIntervalMinutes=0,outputDeadletterTopic=projects/$GCP_PROJECT_ID/topics/$PUB_SUB_TOPIC_REJECTED
-
-echo "Dataflow job started..."
-printf "\n"
-echo "Press ENTER to continue..."
-read -r PRESS_KEY
-
-printf "\n"
-echo "All required configurations have been applied."
+echo "Datadog integration setup completed successfully!"
 
 exit 0
