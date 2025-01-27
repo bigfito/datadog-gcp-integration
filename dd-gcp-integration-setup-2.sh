@@ -1,43 +1,55 @@
 #!/bin/bash
-#
-# @author: Adolfo Orozco - adolfo.orozco@datadoghq.com
-# @version: 1.0
-# @description: This script enables all GCP APIs required for the integration with Datadog in all GCP projects.
 
-echo "NOTE: This script will enable all GCP APIs required for the integration with Datadog in all of your GCP projects."
-echo "NOTE: This script should be executed by a GCP user with GCP ADMIN role."
-printf "\n"
+# Author: Adolfo Orozco - adolfo.orozco@datadoghq.com
+# Version: 1.1
+# Description: Enables all required GCP APIs for Datadog integration in all GCP projects.
 
-# Retrieve the list of GCP projects from the current organization
-# Enable the required GCP APIs for each project
+set -e  # Exit immediately if a command exits with a non-zero status.
 
-while read GCP_PROJECT; do
+# List of required APIs
+REQUIRED_APIS=(
+  "cloudresourcemanager.googleapis.com"
+  "cloudbilling.googleapis.com"
+  "monitoring.googleapis.com"
+  "compute.googleapis.com"
+  "cloudasset.googleapis.com"
+  "iam.googleapis.com"
+)
 
-    # Process the list of GCP projects
-    echo "Enabling GCP APIs for project: $GCP_PROJECT"
+# Introductory message
+echo "This script enables all GCP APIs required for Datadog integration in your GCP projects."
+echo "Please ensure you have GCP ADMIN role before proceeding."
+read -p "Do you want to continue? [y/N]: " CONFIRMATION
 
-    echo "Enabling Cloud Resource Manager API..."
-    gcloud services enable cloudresourcemanager.googleapis.com --project=$GCP_PROJECT
+if [[ "$CONFIRMATION" != "y" && "$CONFIRMATION" != "Y" ]]; then
+  echo "Operation canceled."
+  exit 1
+fi
 
-    echo "Enabling Cloud Billing API..."
-    gcloud services enable cloudbilling.googleapis.com --project=$GCP_PROJECT
+# Retrieve the list of GCP projects
+PROJECTS=$(gcloud projects list --format="value(projectId)")
+if [[ -z "$PROJECTS" ]]; then
+  echo "No GCP projects found. Exiting."
+  exit 1
+fi
 
-    echo "Enabling Cloud Monitoring API..."
-    gcloud services enable monitoring.googleapis.com --project=$GCP_PROJECT
+# Enable required APIs for each project
+for PROJECT in $PROJECTS; do
+  echo " "
+  echo "Processing project: $PROJECT"
 
-    echo "Enabling Compute Engine API..."
-    gcloud services enable compute.googleapis.com --project=$GCP_PROJECT
+  for API in "${REQUIRED_APIS[@]}"; do
+    echo "Enabling API: $API"
+    gcloud services enable "$API" --project="$PROJECT" || {
+      echo "Failed to enable $API for project $PROJECT. Skipping..."
+      continue
+    }
+  done
 
-    echo "Enabling Cloud Asset API..."
-    gcloud services enable cloudasset.googleapis.com --project=$GCP_PROJECT
+echo "Completed enabling APIs for project: $PROJECT."
+done
 
-    echo "Enabling Cloud Identity and Access Management (IAM) API..."
-    gcloud services enable iam.googleapis.com --project=$GCP_PROJECT
-
-    printf "\n"
-
-done < < (gcloud projects list | grep PROJECT_ID | cut -d " " -f 2)
-
-echo "All GCP APIs required for the integration with Datadog have been ENABLED in all GCP projects."
+# Completion message
+echo "All required APIs for Datadog integration have been enabled in all GCP projects."
 
 exit 0
