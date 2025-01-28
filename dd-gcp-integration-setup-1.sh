@@ -6,12 +6,12 @@
 # @description: This script automates the setup for integrating Datadog with GCP.
 
 # GLOBAL PARAMETERS
-GCP_ORG="bigfito.cloud"
-GCP_ORG_ID="584378483656"
-GCP_FOLDER_ID="199236173099"
-GCP_PROJECT_NAME="PRJ-GCP-DD-INTEGRATION"
-GCP_PROJECT_ID="prj-gcp-dd-integration"
-GCP_BILLING_ACCOUNT_ID="01F61D-EF7B6F-CD50BA"
+GCP_ORG="bigfito.dev"
+GCP_ORG_ID=$GCP_ORGID
+GCP_FOLDER_ID="790430491200"
+GCP_PROJECT_NAME="GCP-DD-INTEGRATION"
+GCP_PROJECT_ID="gcp-dd-integration"
+GCP_BILLING_ACCOUNT_ID=$GCP_BILLING_ID
 
 # NETWORKING PARAMETERS
 VPC_NETWORK="vpc-dd-network"
@@ -45,6 +45,7 @@ create_project() {
         --set-as-default
     gcloud billing projects link "$GCP_PROJECT_ID" --billing-account="$GCP_BILLING_ACCOUNT_ID"
     gcloud services enable compute.googleapis.com --project="$GCP_PROJECT_ID"
+    gcloud services enable servicenetworking.googleapis.com --project="$GCP_PROJECT_ID"
     echo "Project created and configured."
     pause
 }
@@ -114,11 +115,11 @@ assign_roles() {
 }
 
 grant_impersonation() {
-    echo "Granting Datadog Principal permission to impersonate the Service Account..."
+    echo "Granting Datadog Principal permission to access the Service Account..."
     gcloud iam service-accounts add-iam-policy-binding "$GCP_SA_EMAIL" \
-        --member="$DD_PRINCIPAL" \
-        --role='roles/iam.serviceAccountTokenCreator'
-    echo "Impersonation granted."
+           --member="$DD_PRINCIPAL" \
+           --role='roles/iam.serviceAccountTokenCreator'
+    echo "Access granted."
     pause
 }
 
