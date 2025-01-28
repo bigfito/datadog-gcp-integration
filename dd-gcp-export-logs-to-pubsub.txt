@@ -1,1 +1,7 @@
-pubsub.googleapis.com/projects/prj-gcp-dd-integration/topics/dd-accepted-logs
+GCP CLOUD LOGGING - ROUTER SINK
+
+At the moment of creating a ROUTER SINK from your GCP projects
+See below the syntax of the PUB/SUB topic where you LOGS will be written into
+Replace the tags {PROJECT_ID} and {ACCEPTED_LOGS_TOPIC} with the proper values
+
+pubsub.googleapis.com/projects/{PROJECT_ID}}/topics/{ACCEPTED_LOGS_TOPIC}
