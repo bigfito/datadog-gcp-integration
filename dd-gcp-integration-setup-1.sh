@@ -27,7 +27,7 @@ GCP_SA_DISPLAY_NAME="sa-dd-integration"
 GCP_SA_EMAIL="$GCP_SA_NAME@$GCP_PROJECT_ID.iam.gserviceaccount.com"
 
 # DATADOG PARAMETERS
-DD_PRINCIPAL_DD="ddgci-264b9f6d06078d90b221@datadog-gci-sts-us1-prod.iam.gserviceaccount.com"
+DD_PRINCIPAL_DD="$DATADOG_PRINCIPAL"
 DD_PRINCIPAL="serviceAccount:$DD_PRINCIPAL_DD"
 
 # Utility Functions

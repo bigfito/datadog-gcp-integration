@@ -26,6 +26,7 @@ PUB_SUB_TOPIC_REJECTED="dd-rejected-logs"
 DATAFLOW_JOB_NAME="dataflow-gcp-logs-to-datadog"
 DATAFLOW_DATADOG_SERVICE_ACCOUNT="dd-dataflow-sa"
 DATAFLOW_SA_FQDN="$DATAFLOW_DATADOG_SERVICE_ACCOUNT@$GCP_PROJECT_ID.iam.gserviceaccount.com"
+DATAFLOW_MACHINE_TYPE="e2-standard-4"
 DATADOG_SECRET_NAME="secret-datadog-api-key"
 DATADOG_API_KEY=$DD_API_KEY
 
@@ -118,6 +119,7 @@ run_dataflow_job() {
     --region "$GCP_REGION" --network "$VPC_NETWORK" \
     --subnetwork "regions/$GCP_REGION/subnetworks/$VPC_SUBNETWORK" \
     --disable-public-ips \
+    --worker-machine-type $DATAFLOW_MACHINE_TYPE \
     --service-account-email "$DATAFLOW_SA_FQDN" \
     --staging-location "gs://$GCP_TEMP_BUCKET/temp" \
     --additional-experiments streaming_mode_exactly_once \
